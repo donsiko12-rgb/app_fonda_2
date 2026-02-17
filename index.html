@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>El Trébol</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <header class="main-header">
+        <h1>☘️ El Trébol</h1>
+        <p id="current-time">12:00 PM</p>
+    </header>
+
+    <main class="app-container">
+        <!-- Left: Tables -->
+        <section class="tables-section">
+            <div class="tables-grid" id="tables-grid">
+                <!-- Tables injected here -->
+            </div>
+        </section>
+
+        <!-- Right: External Orders -->
+        <section class="external-orders-section">
+            <div class="action-buttons">
+                <button class="btn btn-takeout" onclick="startTakeout()">
+                    <i class="ph ph-bag"></i> Para Llevar
+                </button>
+                <button class="btn btn-delivery" onclick="openCustomerForm()">
+                    <i class="ph ph-moped"></i> Domicilio
+                </button>
+            </div>
+
+            <h3>Pedidos Activos</h3>
+            <div class="active-orders-list" id="active-orders-list">
+                <!-- Active takeout/delivery orders injected here -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Customer Info Modal -->
+    <div id="customer-modal" class="modal hidden">
+        <div class="modal-content small-modal">
+            <header class="modal-header">
+                <h2>Datos del Cliente</h2>
+                <button id="close-customer-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+            </header>
+            <div class="modal-body column-center">
+                <form id="customer-form" style="width:100%; display:flex; flex-direction:column; gap:1rem;">
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input type="text" id="cust-name" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono</label>
+                        <input type="tel" id="cust-phone" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Dirección</label>
+                        <textarea id="cust-address" class="form-input" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-large" style="margin-top:1rem;">Continuar al
+                        Pedido</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Modal -->
+    <div id="order-modal" class="modal hidden">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2 id="modal-title">Mesa 1</h2>
+                <button id="close-modal-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+            </header>
+
+            <div class="modal-body">
+                <!-- Left: Order Summary -->
+                <section class="order-summary-panel">
+                    <h3>Pedido Actual</h3>
+                    <div class="order-list" id="order-list">
+                        <!-- Order items injected here -->
+                        <div class="empty-state">
+                            <i class="ph ph-receipt"></i>
+                            <p>Sin productos</p>
+                        </div>
+                    </div>
+                    <div class="order-footer">
+                        <div class="total-row">
+                            <span>Total:</span>
+                            <span id="order-total">$0.00</span>
+                        </div>
+                        <button id="send-order-btn" class="btn btn-primary btn-large">
+                            <i class="ph ph-cooking-pot"></i> Enviar a Cocina
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Right: Menu -->
+                <section class="menu-panel">
+                    <nav class="category-tabs" id="category-tabs">
+                        <!-- Categories injected here -->
+                    </nav>
+                    <div class="products-grid" id="products-grid">
+                        <!-- Products injected here -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- Notes Area -->
+            <div class="order-notes-section">
+                <textarea id="order-notes"
+                    placeholder="Notas para cocina (ej. Sin cebolla, extra picante)..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkout-modal" class="modal hidden">
+        <div class="modal-content small-modal">
+            <header class="modal-header">
+                <h2>Cobrar Mesa <span id="checkout-table-id"></span></h2>
+                <button id="close-checkout-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+            </header>
+            <div class="modal-body column-center">
+                <div class="checkout-total">
+                    <span>Total a Pagar</span>
+                    <h1 id="checkout-total-amount">$0.00</h1>
+                </div>
+                <div class="payment-methods">
+                    <button class="btn btn-outline" onclick="processPayment('Efectivo')">
+                        <i class="ph ph-coins"></i> Efectivo
+                    </button>
+                    <button class="btn btn-outline" onclick="processPayment('Tarjeta')">
+                        <i class="ph ph-credit-card"></i> Tarjeta
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Report Modal -->
+    <div id="report-modal" class="modal hidden">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2>Corte de Caja</h2>
+                <button id="close-report-btn" class="icon-btn"><i class="ph ph-x"></i></button>
+            </header>
+            <div class="modal-body column-center" id="report-body">
+                <!-- Report details injected here -->
+            </div>
+            <div class="modal-footer">
+                <button id="reset-day-btn" class="btn btn-danger">
+                    <i class="ph ph-trash"></i> Cerrar Día (Reiniciar)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Print Area -->
+    <div id="print-area" class="print-area"></div>
+
+    <!-- Fabricated header implementation to include report button -->
+    <script>
+        // Post-load injection for header buttons
+        document.addEventListener('DOMContentLoaded', () => {
+            const header = document.querySelector('.main-header');
+
+            // REPORT BUTTON
+            const reportBtn = document.createElement('button');
+            reportBtn.className = 'btn btn-secondary';
+            reportBtn.innerHTML = '<i class="ph ph-chart-line-up"></i> Corte';
+            reportBtn.onclick = () => window.openReport();
+            header.appendChild(reportBtn);
+        });
+    </script>
+
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
