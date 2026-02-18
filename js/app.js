@@ -41,43 +41,63 @@ const printArea = document.getElementById('print-area');
 // ========================================
 
 function init() {
-    loadState();
+    fetchTables();
+    fetchActiveOrders();
+    fetchSalesLog();
     renderCategories();
     renderProducts(currentCategory);
-    renderTables();
-    renderActiveOrders();
     setupEventListeners();
+    setupRealtimeSubscriptions();
 }
 
-function loadState() {
-    const savedTables = localStorage.getItem('fonda_tables');
-    if (savedTables) {
-        tables = JSON.parse(savedTables);
-    } else {
-        tables = [
-            { id: 1, status: 'available', order: [], notes: '' },
-            { id: 2, status: 'available', order: [], notes: '' },
-            { id: 3, status: 'available', order: [], notes: '' },
-            { id: 4, status: 'available', order: [], notes: '' }
-        ];
-        saveState();
-    }
-
-    const savedOrders = localStorage.getItem('fonda_active_orders');
-    if (savedOrders) {
-        activeOrders = JSON.parse(savedOrders);
-    }
-
-    const savedLog = localStorage.getItem('fonda_sales_log');
-    if (savedLog) {
-        salesLog = JSON.parse(savedLog);
-    }
+async function fetchTables() {
+    const { data, error } = await db.from('tables').select('*').order('id');
+    if (error) { console.error('Error fetching tables:', error); return; }
+    tables = data.map(t => ({ id: t.id, status: t.status, order: t.order_json || [], notes: t.notes || '' }));
+    renderTables();
 }
 
-function saveState() {
-    localStorage.setItem('fonda_tables', JSON.stringify(tables));
-    localStorage.setItem('fonda_active_orders', JSON.stringify(activeOrders));
-    localStorage.setItem('fonda_sales_log', JSON.stringify(salesLog));
+async function fetchActiveOrders() {
+    const { data, error } = await db.from('active_orders').select('*').order('timestamp', { ascending: false });
+    if (error) { console.error('Error fetching orders:', error); return; }
+    activeOrders = data.map(o => ({ id: o.id, type: o.type, status: o.status, customer: o.customer_json || {}, order: o.order_json || [], notes: o.notes || '', timestamp: o.timestamp }));
+    renderActiveOrders();
+}
+
+async function fetchSalesLog() {
+    const { data, error } = await db.from('sales_log').select('*').order('id', { ascending: false });
+    if (error) { console.error('Error fetching sales:', error); return; }
+    salesLog = data.map(s => ({ id: s.id, ref_id: s.ref_id, type: s.type, total: parseFloat(s.total), method: s.method, items: s.items_json || [], date: s.date }));
+}
+
+async function saveTable(tableData) {
+    const { error } = await db.from('tables').update({ status: tableData.status, order_json: tableData.order, notes: tableData.notes }).eq('id', tableData.id);
+    if (error) console.error('Error saving table:', error);
+}
+
+async function saveActiveOrder(orderData) {
+    const { error } = await db.from('active_orders').upsert({ id: orderData.id, type: orderData.type, status: orderData.status, customer_json: orderData.customer, order_json: orderData.order, notes: orderData.notes, timestamp: orderData.timestamp });
+    if (error) console.error('Error saving order:', error);
+}
+
+async function deleteActiveOrder(orderId) {
+    const { error } = await db.from('active_orders').delete().eq('id', orderId);
+    if (error) console.error('Error deleting order:', error);
+}
+
+async function saveSale(saleData) {
+    const { error } = await db.from('sales_log').insert({ id: saleData.id, ref_id: saleData.ref_id, type: saleData.type, total: saleData.total, method: saleData.method, items_json: saleData.items, date: saleData.date });
+    if (error) console.error('Error saving sale:', error);
+}
+
+function setupRealtimeSubscriptions() {
+    db.channel('tables-channel')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'tables' }, () => fetchTables())
+        .subscribe();
+    db.channel('orders-channel')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'active_orders' }, () => fetchActiveOrders())
+        .subscribe();
+    console.log('✅ Real-time subscriptions active');
 }
 
 function setupEventListeners() {
@@ -98,7 +118,6 @@ function setupEventListeners() {
     resetDayBtn.onclick = () => {
         if (confirm('¿Seguro que quieres cerrar el día?')) {
             salesLog = [];
-            saveState();
             openReport();
         }
     };
@@ -279,7 +298,7 @@ function startTakeout() {
     };
 
     activeOrders.push(newOrder);
-    saveState();
+    saveActiveOrder(newOrder);
     renderActiveOrders();
     openExistingOrder(newId);
 }
@@ -314,7 +333,7 @@ customerForm.onsubmit = function (e) {
     };
 
     activeOrders.push(newOrder);
-    saveState();
+    saveActiveOrder(newOrder);
     renderActiveOrders();
 
     customerModal.classList.remove('active');
@@ -349,7 +368,7 @@ function closeOrderModal() {
     const data = getOrderData();
     if (data) {
         data.notes = orderNotes.value;
-        saveState();
+        if (currentOrderType === 'table') { saveTable(data); } else { saveActiveOrder(data); }
     }
 
     orderModal.classList.remove('active');
@@ -371,7 +390,7 @@ function addToOrder(product) {
     }
 
     renderOrderList();
-    saveState();
+    if (currentOrderType === 'table') { saveTable(data); } else { saveActiveOrder(data); }
 }
 
 window.updateQty = function (productId, change) {
@@ -385,7 +404,7 @@ window.updateQty = function (productId, change) {
             data.order.splice(itemIndex, 1);
         }
         renderOrderList();
-        saveState();
+        if (currentOrderType === 'table') { saveTable(data); } else { saveActiveOrder(data); }
     }
 };
 
@@ -400,9 +419,10 @@ function sendOrder() {
 
     if (currentOrderType === 'table') {
         data.status = 'busy';
+        saveTable(data);
+    } else {
+        saveActiveOrder(data);
     }
-
-    saveState();
 
     const title = currentOrderType === 'delivery' ? 'DOMICILIO' :
         currentOrderType === 'takeout' ? 'PARA LLEVAR' : 'COMANDA MESA';
@@ -466,20 +486,22 @@ window.processPayment = function (method) {
     };
 
     salesLog.push(sale);
+    saveSale(sale);
     printTicket(data, 'TICKET DE VENTA', method, total);
 
     if (currentOrderType === 'table') {
         data.status = 'available';
         data.order = [];
         data.notes = '';
+        saveTable(data);
         renderTables();
     } else {
         const idx = activeOrders.findIndex(o => o.id === data.id);
         if (idx > -1) activeOrders.splice(idx, 1);
+        deleteActiveOrder(data.id);
         renderActiveOrders();
     }
 
-    saveState();
     checkoutModal.classList.remove('active');
     setTimeout(() => checkoutModal.classList.add('hidden'), 300);
 };
