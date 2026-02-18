@@ -163,7 +163,7 @@ async function submitOrder() {
         customer_json: { name, phone, address },
         order_json: cart,
         notes: notes,
-        timestamp: new Date().toISOString()
+        timestamp: Date.now()
     };
 
     const { data, error } = await db.from('active_orders').insert(orderData).select().single();
