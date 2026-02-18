@@ -48,6 +48,12 @@ function init() {
     renderProducts(currentCategory);
     setupEventListeners();
     setupRealtimeSubscriptions();
+
+    // Auto-refresh orders and tables every 15 seconds
+    setInterval(() => {
+        fetchActiveOrders();
+        fetchTables();
+    }, 15000);
 }
 
 async function fetchTables() {
