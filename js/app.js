@@ -60,7 +60,7 @@ async function fetchTables() {
 async function fetchActiveOrders() {
     const { data, error } = await db.from('active_orders').select('*').order('timestamp', { ascending: false });
     if (error) { console.error('Error fetching orders:', error); return; }
-    activeOrders = data.map(o => ({ id: o.id, type: o.type, status: o.status, customer: o.customer_json || {}, order: o.order_json || [], notes: o.notes || '', timestamp: o.timestamp }));
+    activeOrders = data.map(o => ({ id: o.id, type: o.type, status: o.status, delivery_status: o.delivery_status || 'pending', customer: o.customer_json || {}, order: o.order_json || [], notes: o.notes || '', timestamp: o.timestamp }));
     renderActiveOrders();
 }
 
@@ -167,21 +167,44 @@ function renderActiveOrders() {
         card.onclick = () => openExistingOrder(order.id);
 
         const total = order.order.reduce((sum, item) => sum + (item.price * item.qty), 0);
-        const icon = order.type === 'delivery' ? '🛵' : '🥡';
-        const title = order.type === 'delivery' ? order.customer.name : 'Para Llevar';
+
+        let icon, title;
+        if (order.type === 'delivery') { icon = '🛵'; title = order.customer.name; }
+        else if (order.type === 'online') { icon = '📱'; title = order.customer.name || 'Pedido Online'; }
+        else { icon = '🥡'; title = 'Para Llevar'; }
+
+        // Status dot for online orders
+        const isSent = order.delivery_status === 'sent';
+        const statusDot = order.type === 'online'
+            ? `<span class="status-dot ${isSent ? 'sent' : 'pending'}" title="${isSent ? 'Enviado' : 'Pendiente de envío'}"></span>`
+            : '';
+
+        // Mark as sent button for online orders
+        const sentBtn = order.type === 'online' && !isSent
+            ? `<button class="btn btn-sent" onclick="event.stopPropagation(); markAsSent('${order.id}')">✅ Marcar enviado</button>`
+            : '';
 
         card.innerHTML = `
             <div class="order-header">
-                <span>${icon} ${title}</span>
+                <span>${statusDot}${icon} ${title}</span>
                 <span>$${total.toFixed(2)}</span>
             </div>
             <div class="order-details">
                 ${order.order.length} productos • ${new Date(order.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </div>
+            ${sentBtn}
             <button class="btn btn-secondary" style="width:100%; margin-top:0.5rem" onclick="event.stopPropagation(); openCheckout('${order.id}', '${order.type}')">💰 Cobrar</button>
         `;
         activeOrdersList.appendChild(card);
     });
+}
+
+async function markAsSent(orderId) {
+    const { error } = await db.from('active_orders').update({ delivery_status: 'sent' }).eq('id', orderId);
+    if (error) { console.error('Error marking as sent:', error); return; }
+    const order = activeOrders.find(o => o.id === orderId);
+    if (order) order.delivery_status = 'sent';
+    renderActiveOrders();
 }
 
 function renderCategories() {

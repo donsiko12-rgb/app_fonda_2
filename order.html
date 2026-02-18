@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>El Trébol - Haz tu Pedido</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+    <link rel="stylesheet" href="css/order.css">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="order-header">
+        <div class="header-brand">
+            <span class="brand-icon">🍀</span>
+            <div>
+                <h1>El Trébol</h1>
+                <p>Haz tu pedido en línea</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="order-main" id="order-main">
+
+        <!-- Step 1: Customer Info -->
+        <section class="step-card" id="step-info">
+            <h2 class="step-title">👤 Tus datos</h2>
+            <div class="form-group">
+                <label>Nombre *</label>
+                <input type="text" id="cust-name" class="form-input" placeholder="¿Cómo te llamas?" required>
+            </div>
+            <div class="form-group">
+                <label>Teléfono *</label>
+                <input type="tel" id="cust-phone" class="form-input" placeholder="Tu número de WhatsApp">
+            </div>
+            <div class="form-group">
+                <label>Dirección (opcional)</label>
+                <input type="text" id="cust-address" class="form-input" placeholder="¿Dónde te lo llevamos?">
+            </div>
+        </section>
+
+        <!-- Step 2: Menu -->
+        <section class="step-card" id="step-menu">
+            <h2 class="step-title">🍽️ Elige tus platillos</h2>
+            <div class="category-tabs" id="order-category-tabs"></div>
+            <div class="order-products-grid" id="order-products-grid"></div>
+        </section>
+
+        <!-- Cart Summary -->
+        <section class="cart-section" id="cart-section">
+            <div class="cart-header" onclick="toggleCart()">
+                <span>🛒 Tu pedido (<span id="cart-count">0</span> productos)</span>
+                <span id="cart-total-mini">$0.00</span>
+                <i class="ph ph-caret-up" id="cart-chevron"></i>
+            </div>
+            <div class="cart-items" id="cart-items"></div>
+            <div class="cart-footer" id="cart-footer">
+                <div class="cart-total-row">
+                    <span>Total</span>
+                    <span id="cart-total">$0.00</span>
+                </div>
+                <div class="form-group">
+                    <label>Notas (opcional)</label>
+                    <textarea id="order-notes-online" class="form-input" rows="2"
+                        placeholder="Ej: sin cebolla, extra salsa..."></textarea>
+                </div>
+                <button class="btn-submit" id="submit-btn" onclick="submitOrder()">
+                    <i class="ph ph-paper-plane-tilt"></i> Enviar Pedido
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Success Screen -->
+    <div class="success-screen hidden" id="success-screen">
+        <div class="success-content">
+            <div class="success-icon">✅</div>
+            <h2>¡Pedido enviado!</h2>
+            <p>Recibimos tu pedido. En breve nos ponemos en contacto contigo.</p>
+            <p class="order-id-display" id="success-order-id"></p>
+            <button class="btn-submit" onclick="resetOrder()" style="margin-top:2rem">
+                Hacer otro pedido
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/order.js"></script>
+</body>
+
+</html>
