@@ -166,7 +166,7 @@ async function submitOrder() {
         timestamp: Date.now()
     };
 
-    const { data, error } = await db.from('active_orders').insert(orderData).select().single();
+    const { error } = await db.from('active_orders').insert(orderData);
 
     if (error) {
         console.error('Error submitting order:', error);
@@ -178,7 +178,7 @@ async function submitOrder() {
 
     // Show success screen
     document.getElementById('success-screen').classList.remove('hidden');
-    document.getElementById('success-order-id').textContent = `Folio: #${data.id}`;
+    document.getElementById('success-order-id').textContent = `Tu pedido fue recibido. ¡Gracias ${name}!`;
 
 }
 
