@@ -156,9 +156,7 @@ async function submitOrder() {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Enviando...';
 
-    const orderId = 'O-' + Math.floor(Date.now() / 1000).toString().slice(-6);
     const orderData = {
-        id: orderId,
         type: 'online',
         status: 'pending',
         delivery_status: 'pending',
@@ -168,7 +166,7 @@ async function submitOrder() {
         timestamp: new Date().toISOString()
     };
 
-    const { error } = await db.from('active_orders').insert(orderData);
+    const { data, error } = await db.from('active_orders').insert(orderData).select().single();
 
     if (error) {
         console.error('Error submitting order:', error);
@@ -180,7 +178,8 @@ async function submitOrder() {
 
     // Show success screen
     document.getElementById('success-screen').classList.remove('hidden');
-    document.getElementById('success-order-id').textContent = `Folio: ${orderId}`;
+    document.getElementById('success-order-id').textContent = `Folio: #${data.id}`;
+
 }
 
 // Reset for new order
