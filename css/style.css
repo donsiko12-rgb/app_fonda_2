@@ -663,6 +663,238 @@ body {
     display: none;
 }
 
+/* ========================================
+   RESPONSIVE - TABLET (< 1024px)
+   ======================================== */
+@media (max-width: 1024px) {
+    .external-orders-section {
+        min-width: 280px;
+        max-width: 320px;
+    }
+
+    .tables-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .table-card {
+        min-height: 160px;
+    }
+
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    }
+
+    .product-card {
+        height: 120px;
+    }
+}
+
+/* ========================================
+   RESPONSIVE - MOBILE (< 768px)
+   ======================================== */
+@media (max-width: 768px) {
+
+    /* Header */
+    .main-header {
+        padding: 0.75rem 1rem;
+    }
+
+    .main-header h1 {
+        font-size: 1.2rem;
+    }
+
+    /* Main layout: stack vertically */
+    .app-container {
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    /* Tables section takes full width */
+    .tables-section {
+        flex: 1;
+        border-right: none;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 1rem;
+        overflow-y: auto;
+    }
+
+    .tables-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .table-card {
+        min-height: 120px;
+    }
+
+    .table-card h2 {
+        font-size: 1.4rem;
+    }
+
+    .table-status {
+        font-size: 0.9rem;
+        padding: 0.3rem 0.75rem;
+    }
+
+    /* External orders section: horizontal strip at bottom */
+    .external-orders-section {
+        min-width: unset;
+        max-width: unset;
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 0.75rem 1rem;
+        gap: 0.75rem;
+        flex-shrink: 0;
+        max-height: 180px;
+        overflow-y: auto;
+    }
+
+    .action-buttons {
+        margin-bottom: 0;
+        flex-shrink: 0;
+    }
+
+    .btn-takeout,
+    .btn-delivery {
+        padding: 0.75rem 1rem;
+        flex-direction: row;
+        font-size: 0.85rem;
+    }
+
+    .btn-takeout i,
+    .btn-delivery i {
+        font-size: 1.2rem;
+        margin-bottom: 0;
+        margin-right: 0.25rem;
+    }
+
+    .external-orders-section h3 {
+        display: none;
+    }
+
+    .active-orders-list {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-top: 0;
+        gap: 0.75rem;
+        flex: 1;
+    }
+
+    .order-card-item {
+        min-width: 200px;
+        flex-shrink: 0;
+    }
+
+    /* Modal: full screen on mobile */
+    .modal-content {
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+    }
+
+    .small-modal {
+        width: 100%;
+        height: auto;
+        max-height: 95vh;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: 0;
+    }
+
+    /* Modal body: stack vertically */
+    .modal-body {
+        flex-direction: column;
+    }
+
+    /* Order summary panel: horizontal strip at top */
+    .order-summary-panel {
+        width: 100%;
+        max-height: 40%;
+        border-right: none;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    /* Menu panel: takes remaining space */
+    .menu-panel {
+        flex: 1;
+        min-height: 0;
+    }
+
+    .products-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        padding: 0.75rem;
+    }
+
+    .product-card {
+        height: 100px;
+        padding: 0.5rem;
+    }
+
+    .product-icon {
+        font-size: 1.5rem;
+    }
+
+    .product-card h4 {
+        font-size: 0.8rem;
+    }
+
+    .product-card .price {
+        font-size: 0.9rem;
+    }
+
+    .order-notes-section {
+        padding: 0.5rem;
+    }
+
+    #order-notes {
+        height: 40px;
+        font-size: 0.9rem;
+    }
+
+    .checkout-total h1 {
+        font-size: 2.5rem;
+    }
+
+    .column-center {
+        padding: 1.5rem 1rem;
+    }
+}
+
+/* ========================================
+   RESPONSIVE - SMALL MOBILE (< 480px)
+   ======================================== */
+@media (max-width: 480px) {
+    .tables-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+
+    .table-card {
+        min-height: 100px;
+    }
+
+    .table-card h2 {
+        font-size: 1.2rem;
+    }
+
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .product-card {
+        height: 90px;
+    }
+}
+
+
 @media print {
     body * {
         visibility: hidden;
