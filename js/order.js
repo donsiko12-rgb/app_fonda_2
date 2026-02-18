@@ -156,7 +156,9 @@ async function submitOrder() {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Enviando...';
 
+    const orderId = 'online-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
     const orderData = {
+        id: orderId,
         type: 'online',
         status: 'pending',
         delivery_status: 'pending',
