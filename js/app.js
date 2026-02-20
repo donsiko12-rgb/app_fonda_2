@@ -41,6 +41,7 @@ const printArea = document.getElementById('print-area');
 // ========================================
 
 function init() {
+    OfflineManager.init(); // Start offline manager
     fetchTables();
     fetchActiveOrders();
     fetchSalesLog();
@@ -77,23 +78,51 @@ async function fetchSalesLog() {
 }
 
 async function saveTable(tableData) {
-    const { error } = await db.from('tables').update({ status: tableData.status, order_json: tableData.order, notes: tableData.notes }).eq('id', tableData.id);
-    if (error) console.error('Error saving table:', error);
+    if (OfflineManager.isOnline()) {
+        const { error } = await db.from('tables').update({ status: tableData.status, order_json: tableData.order, notes: tableData.notes }).eq('id', tableData.id);
+        if (error) {
+            console.error('Error saving table (online), queuing offline:', error);
+            OfflineManager.queueAction({ type: 'save_table', data: tableData });
+        }
+    } else {
+        OfflineManager.queueAction({ type: 'save_table', data: tableData });
+    }
 }
 
 async function saveActiveOrder(orderData) {
-    const { error } = await db.from('active_orders').upsert({ id: orderData.id, type: orderData.type, status: orderData.status, customer_json: orderData.customer, order_json: orderData.order, notes: orderData.notes, timestamp: orderData.timestamp });
-    if (error) console.error('Error saving order:', error);
+    if (OfflineManager.isOnline()) {
+        const { error } = await db.from('active_orders').upsert({ id: orderData.id, type: orderData.type, status: orderData.status, customer_json: orderData.customer, order_json: orderData.order, notes: orderData.notes, timestamp: orderData.timestamp });
+        if (error) {
+            console.error('Error saving order (online), queuing offline:', error);
+            OfflineManager.queueAction({ type: 'save_order', data: orderData });
+        }
+    } else {
+        OfflineManager.queueAction({ type: 'save_order', data: orderData });
+    }
 }
 
 async function deleteActiveOrder(orderId) {
-    const { error } = await db.from('active_orders').delete().eq('id', orderId);
-    if (error) console.error('Error deleting order:', error);
+    if (OfflineManager.isOnline()) {
+        const { error } = await db.from('active_orders').delete().eq('id', orderId);
+        if (error) {
+            console.error('Error deleting order (online), queuing offline:', error);
+            OfflineManager.queueAction({ type: 'delete_order', data: orderId });
+        }
+    } else {
+        OfflineManager.queueAction({ type: 'delete_order', data: orderId });
+    }
 }
 
 async function saveSale(saleData) {
-    const { error } = await db.from('sales_log').insert({ id: saleData.id, ref_id: saleData.ref_id, type: saleData.type, total: saleData.total, method: saleData.method, items_json: saleData.items, date: saleData.date });
-    if (error) console.error('Error saving sale:', error);
+    if (OfflineManager.isOnline()) {
+        const { error } = await db.from('sales_log').insert({ id: saleData.id, ref_id: saleData.ref_id, type: saleData.type, total: saleData.total, method: saleData.method, items_json: saleData.items, date: saleData.date });
+        if (error) {
+            console.error('Error saving sale (online), queuing offline:', error);
+            OfflineManager.queueAction({ type: 'save_sale', data: saleData });
+        }
+    } else {
+        OfflineManager.queueAction({ type: 'save_sale', data: saleData });
+    }
 }
 
 function setupRealtimeSubscriptions() {
